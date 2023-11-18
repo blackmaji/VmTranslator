@@ -4,7 +4,8 @@ import java.util.stream.Collectors;
 
 public class Parser {
     List<String[]> commands;
-    
+    int currentIndex;
+
     Parser (String input) {
         final String eol = System.getProperty("line.separator");
         var output = input.split(eol);
@@ -13,5 +14,15 @@ public class Parser {
         .filter(  (s) ->  s.indexOf("//") != 0 && s != "")
         .map ( (s) ->s.split(" ")  )
         .collect(Collectors.toList());
+    }
+
+    public boolean hasMoreCommands () {
+        return currentIndex < commands.size();
+    }
+
+    public void advance() {
+        if (hasMoreCommands()) {
+            currentIndex++;
+        }
     }
 }
