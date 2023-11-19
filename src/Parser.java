@@ -48,5 +48,18 @@ public class Parser {
         }
         return null;
     }
+
+    public String arg1() {
+        if (hasMoreCommands()) {
+            String[] currentCommand = commands.get(currentIndex);
+            String commandType = commandType();
     
+            if (commandType.equals("Return")) {
+                return null;
+            }
+    
+            return currentCommand.length > 1 ? currentCommand[1] : null;
+        }
+        return null;
+    }
 }
