@@ -25,4 +25,28 @@ public class Parser {
             currentIndex++;
         }
     }
+    public String commandType() {
+        if (hasMoreCommands()) {
+            String[] currentCommand = commands.get(currentIndex);
+    
+            switch (currentCommand[0]) {
+                case "add":
+                case "sub":
+                    return "Arithmetic";
+                case "push":
+                case "pop":
+                case "label":
+                case "goto":
+                case "if":
+                case "function":
+                case "return":
+                case "call":
+                    return currentCommand[0].substring(0, 1).toUpperCase() + currentCommand[0].substring(1);
+                default:
+                    return "Arithmetic";
+            }
+        }
+        return null;
+    }
+    
 }
