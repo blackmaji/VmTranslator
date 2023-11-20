@@ -4,6 +4,7 @@ import java.io.IOException;
 
 public class CodeWriter {
     private BufferedWriter writer;
+    private StringBuilder output = new StringBuilder();
 
     public CodeWriter(String fileName) {
         try {
@@ -12,7 +13,30 @@ public class CodeWriter {
             e.printStackTrace();
         }
     }  
+    public void writeArithmetic(String command) {
 
+        switch (command) {
+            case "add":
+                write("@SP // add");
+                write("M=M-1");
+                write("A=M");
+                write("D=M");
+                write("A=A-1");
+                write("M=D+M");
+                break;
+            case "sub":
+                write("@SP // sub");
+                write("M=M-1");
+                write("A=M");
+                write("D=M");
+                write("A=A-1");
+                write("M=M-D");
+                break;
+            default:
+                break;
+        }
+    }
+    
     public void close() {
         try {
             if (writer != null) {
@@ -22,4 +46,8 @@ public class CodeWriter {
             e.printStackTrace();
         }
     }
+
+    public void write(String s) {
+        output.append(String.format("%s\n", s));
+    }  
 }
