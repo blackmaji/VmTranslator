@@ -25,6 +25,7 @@ public class Parser {
             currentIndex++;
         }
     }
+    
     public String commandType() {
         if (hasMoreCommands()) {
             String[] currentCommand = commands.get(currentIndex);
@@ -62,4 +63,19 @@ public class Parser {
         }
         return null;
     }
+
+    public String arg2() {
+        if (hasMoreCommands()) {
+            String[] currentCommand = commands.get(currentIndex);
+            String commandType = commandType();
+    
+            if (commandType.equals("Push") || commandType.equals("Pop") || 
+                commandType.equals("Function") || commandType.equals("Call")) {
+    
+                return currentCommand.length > 2 ? currentCommand[2] : null;
+            }
+        }
+        return null;
+    }
+    
 }
