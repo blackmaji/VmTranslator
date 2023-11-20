@@ -3,10 +3,22 @@ public class Main {
             testCommandType();
             testArg1();
             testArg2();
+
+            String input = "push const 10";
+            Parser parser = new Parser(input);
+
+            while (parser.hasMoreCommands()) {
+                System.out.println("Command Type: " + parser.commandType());
+                System.out.println("Arg1: " + parser.arg1());
+                System.out.println("Arg2: " + parser.arg2());
+                System.out.println("------------");
+                parser.advance();
+            }
+
         }
     
         public static void testCommandType() {
-        String input = "push constant 7\nadd\nsub\nlabel LOOP\nif-goto END\nfunction SimpleFunction 0\nreturn";
+        String input = "push constant 7";
         Parser parser = new Parser(input);
 
         while (parser.hasMoreCommands()) {
@@ -17,7 +29,7 @@ public class Main {
     }
 
     public static void testArg1() {
-        String input = "push local 2\npop argument 0\nlabel LOOP\nif-goto END\nfunction SimpleFunction 0\nreturn";
+        String input = "push local 2";
         Parser parser = new Parser(input);
 
         while (parser.hasMoreCommands()) {
@@ -28,7 +40,7 @@ public class Main {
     }
 
     public static void testArg2() {
-        String input = "push constant 7\npop local 2\nlabel LOOP\nif-goto END\nfunction SimpleFunction 0\nreturn";
+        String input = "push constant 7";
         Parser parser = new Parser(input);
 
         while (parser.hasMoreCommands()) {
