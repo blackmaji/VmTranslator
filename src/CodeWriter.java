@@ -5,6 +5,7 @@ public class CodeWriter {
     private BufferedWriter writer;
     private StringBuilder output = new StringBuilder();
     private String moduleName = "Main";
+    private int labelCount = 0;
     private String outputFileName;
 
 
@@ -29,30 +30,6 @@ public class CodeWriter {
             return "R" + (5 + index);
 
         return moduleName + "." + index;
-    }
-
-    public void writeArithmetic(String command) {
-
-        switch (command) {
-            case "add":
-                write("@SP // add");
-                write("M=M-1");
-                write("A=M");
-                write("D=M");
-                write("A=A-1");
-                write("M=D+M");
-                break;
-            case "sub":
-                write("@SP // sub");
-                write("M=M-1");
-                write("A=M");
-                write("D=M");
-                write("A=A-1");
-                write("M=M-D");
-                break;
-            default:
-                break;
-        }
     }
 
     void writePush(String seg, int index) {
@@ -113,6 +90,114 @@ public class CodeWriter {
             write("M=D");
         }
     }
+
+    void writeArithmeticNeg() {
+        write("@SP // neg");
+        write("A=M");
+        write("A=A-1");
+        write("M=-M");
+    }
+
+    void writeArithmeticAnd() {
+        write("@SP // and");
+        write("AM=M-1");
+        write("D=M");
+        write("A=A-1");
+        write("M=D&M");
+    }
+
+    void writeArithmeticOr() {
+        write("@SP // or");
+        write("AM=M-1");
+        write("D=M");
+        write("A=A-1");
+        write("M=D|M");
+    }
+
+    void writeArithmeticNot() {
+
+        write("@SP // not");
+        write("A=M");
+        write("A=A-1");
+        write("M=!M");
+    }
+
+    void writeArithmeticEq() {
+        String label = ("JEQ_" + moduleName + "_" + (labelCount));
+        write("@SP // eq");
+        write("AM=M-1");
+        write("D=M");
+        write("@SP");
+        write("AM=M-1");
+        write("D=M-D");
+        write("@" + label);
+        write("D;JEQ");
+        write("D=1");
+        write("(" + label + ")");
+        write("D=D-1");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+
+        labelCount++;
+    }
+
+    void writeArithmeticGt() {
+        String labelTrue = ("JGT_TRUE_" + moduleName + "_" + (labelCount));
+        String labelFalse = ("JGT_FALSE_" + moduleName + "_" + (labelCount));
+
+        write("@SP // gt");
+        write("AM=M-1");
+        write("D=M");
+        write("@SP");
+        write("AM=M-1");
+        write("D=M-D");
+        write("@" + labelTrue);
+        write("D;JGT");
+        write("D=0");
+        write("@" + labelFalse);
+        write("0;JMP");
+        write("(" + labelTrue + ")");
+        write("D=-1");
+        write("(" + labelFalse + ")");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+
+        labelCount++;
+    }
+
+    void writeArithmeticLt() {
+        String labelTrue = ("JLT_TRUE_" + moduleName + "_" + (labelCount));
+        String labelFalse = ("JLT_FALSE_" + moduleName + "_" + (labelCount));
+
+        write("@SP // lt");
+        write("AM=M-1");
+        write("D=M");
+        write("@SP");
+        write("AM=M-1");
+        write("D=M-D");
+        write("@" + labelTrue);
+        write("D;JLT");
+        write("D=0");
+        write("@" + labelFalse);
+        write("0;JMP");
+        write("(" + labelTrue + ")");
+        write("D=-1");
+        write("(" + labelFalse + ")");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+
+        labelCount++;
+    }
+
 
 
     public void close() throws IOException {
