@@ -3,8 +3,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Parser {
+
     List<String[]> commands;
-    int currentIndex;
 
     Parser (String input) {
         final String eol = System.getProperty("line.separator");
@@ -12,70 +12,18 @@ public class Parser {
         commands = Arrays.stream(output)
         .map(String::strip)
         .filter(  (s) ->  s.indexOf("//") != 0 && s != "")
+        //.map ( (s) -> s.substring(0, s.indexOf("//")) )
         .map ( (s) ->s.split(" ")  )
         .collect(Collectors.toList());
+
     }
 
     public boolean hasMoreCommands () {
-        return currentIndex < commands.size();
+        return commands.size() != 0;
     }
 
-    public void advance() {
-        if (hasMoreCommands()) {
-            currentIndex++;
-        }
-    }
-    
-    public String commandType() {
-        if (hasMoreCommands()) {
-            String[] currentCommand = commands.get(currentIndex);
-    
-            switch (currentCommand[0]) {
-                case "add":
-                case "sub":
-                    return "Arithmetic";
-                case "push":
-                case "pop":
-                case "label":
-                case "goto":
-                case "if":
-                case "function":
-                case "return":
-                case "call":
-                    return currentCommand[0].substring(0, 1).toUpperCase() + currentCommand[0].substring(1);
-                default:
-                    return "Arithmetic";
-            }
-        }
-        return null;
-    }
-
-    public String arg1() {
-        if (hasMoreCommands()) {
-            String[] currentCommand = commands.get(currentIndex);
-            String commandType = commandType();
-    
-            if (commandType.equals("Return")) {
-                return null;
-            }
-    
-            return currentCommand.length > 1 ? currentCommand[1] : null;
-        }
-        return null;
-    }
-
-    public String arg2() {
-        if (hasMoreCommands()) {
-            String[] currentCommand = commands.get(currentIndex);
-            String commandType = commandType();
-    
-            if (commandType.equals("Push") || commandType.equals("Pop") || 
-                commandType.equals("Function") || commandType.equals("Call")) {
-    
-                return currentCommand.length > 2 ? currentCommand[2] : null;
-            }
-        }
-        return null;
+    public Command nextCommand () {
+        return new Command(commands.remove(0));
     }
     
 }
