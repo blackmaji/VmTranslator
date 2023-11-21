@@ -22,6 +22,47 @@ public class Main {
             System.exit(1);
         }
 
+        File file = new File(args[0]);
+
+        if (!file.exists()) {   
+            System.err.println("The file doesn't exist.");
+            System.exit(1);
+        }
+
+        if (file.isDirectory()) {
+
+            var outputFileName = file.getAbsolutePath() +"/"+ file.getName()+".asm";
+            System.out.println(outputFileName);
+            CodeWriter code = new CodeWriter(outputFileName);
+
+            for (File f : file.listFiles()) {
+                if (f.isFile() && f.getName().endsWith(".vm")) {
+
+                    var inputFileName = f.getAbsolutePath();
+                    var pos = inputFileName.indexOf('.');
+                    
+                    
+                    System.out.println("compiling " +  inputFileName);
+                    translateFile(f,code);
+
+                }
+
+            }
+            code.save();
+        } else if (file.isFile()) {
+            if (!file.getName().endsWith(".vm"))  {
+                System.err.println("Please provide a file name ending with .vm");
+                System.exit(1);
+            } else {
+                var inputFileName = file.getAbsolutePath();
+                var pos = inputFileName.indexOf('.');
+                var outputFileName = inputFileName.substring(0, pos) + ".asm";
+                CodeWriter code = new CodeWriter(outputFileName);
+                System.out.println("compiling " +  inputFileName);
+                translateFile(file,code); 
+                code.save();               
+            }
+        }
     }
 
     private static void translateFile (File file, CodeWriter code) {
@@ -63,12 +104,10 @@ public class Main {
                 case AND:
                     code.writeArithmeticAnd();
                     break;
-
-                            
+   
                 case OR:
                     code.writeArithmeticOr();
                     break;
-
 
                 case PUSH:
                     code.writePush(command.args.get(0), Integer.parseInt(command.args.get(1)));
