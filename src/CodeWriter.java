@@ -1,18 +1,36 @@
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 
 public class CodeWriter {
     private BufferedWriter writer;
     private StringBuilder output = new StringBuilder();
+    private String moduleName = "Main";
+    private String outputFileName;
 
-    public CodeWriter(String fileName) {
-        try {
-            writer = new BufferedWriter(new FileWriter(fileName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }  
+
+    public CodeWriter(String fname) {
+        outputFileName = fname;
+    }
+
+    
+    String registerName(String segment, int index) {
+
+        if (segment.equals("local"))
+            return "LCL";
+        if (segment.equals("argument"))
+            return "ARG";
+        if (segment.equals("this"))
+            return "THIS";
+        if (segment.equals("that"))
+            return "THAT";
+        if (segment.equals("pointer"))
+            return "R" + (3 + index);
+        if (segment.equals("temp"))
+            return "R" + (5 + index);
+
+        return moduleName + "." + index;
+    }
+
     public void writeArithmetic(String command) {
 
         switch (command) {
@@ -36,14 +54,44 @@ public class CodeWriter {
                 break;
         }
     }
-    
-    public void close() {
-        try {
-            if (writer != null) {
-                writer.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+    void writePush(String seg, int index) {
+        if (seg.equals("constant")) {
+            write("@" + index + " // push " + seg + " " + index);
+            write("D=A");
+            write("@SP");
+            write("A=M");
+            write("M=D");
+            write("@SP");
+            write("M=M+1");
+        } else if (seg.equals("static") || seg.equals("temp") || seg.equals("pointer")) {
+            write("@" + registerName(seg, index) + " // push " + seg + " " + index);
+            write("D=M");
+            write("@SP");
+            write("A=M");
+            write("M=D");
+            write("@SP");
+            write("M=M+1");
+        }
+
+        else {
+            write("@" + registerName(seg, 0) + " // push " + seg + " " + index);
+            write("D=M");
+            write("@" + index);
+            write("A=D+A");
+            write("D=M");
+            write("@SP");
+            write("A=M");
+            write("M=D");
+            write("@SP");
+            write("M=M+1");
+        }
+    }
+
+
+    public void close() throws IOException {
+        if (writer != null) {
+            writer.close();
         }
     }
 
