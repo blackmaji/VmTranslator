@@ -88,6 +88,32 @@ public class CodeWriter {
         }
     }
 
+    void writePop(String seg, int index) {
+        if (seg.equals("static") || seg.equals("temp") || seg.equals("pointer")) {
+
+            write("@SP // pop " + seg + " " + index);
+            write("M=M-1");
+            write("A=M");
+            write("D=M");
+            write("@" + registerName(seg, index));
+            write("M=D");
+        } else {
+            write("@" + registerName(seg, 0) + " // pop " + seg + " " + index);
+            write("D=M");
+            write("@" + index);
+            write("D=D+A");
+            write("@R13");
+            write("M=D");
+            write("@SP");
+            write("M=M-1");
+            write("A=M");
+            write("D=M");
+            write("@R13");
+            write("A=M");
+            write("M=D");
+        }
+    }
+
 
     public void close() throws IOException {
         if (writer != null) {
