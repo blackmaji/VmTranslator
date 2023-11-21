@@ -91,6 +91,24 @@ public class CodeWriter {
         }
     }
 
+    void writeArithmeticAdd() {
+        write("@SP // add");
+        write("M=M-1");
+        write("A=M");
+        write("D=M");
+        write("A=A-1");
+        write("M=D+M");
+    }
+
+    void writeArithmeticSub() {
+        write("@SP // sub");
+        write("M=M-1");
+        write("A=M");
+        write("D=M");
+        write("A=A-1");
+        write("M=M-D");
+    }
+
     void writeArithmeticNeg() {
         write("@SP // neg");
         write("A=M");
