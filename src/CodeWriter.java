@@ -1,4 +1,6 @@
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class CodeWriter {
@@ -223,6 +225,23 @@ public class CodeWriter {
             writer.close();
         }
     }
+
+    public void save() {
+
+        FileOutputStream outputStream;
+        try {
+            outputStream = new FileOutputStream(outputFileName);
+
+            outputStream.write(output.toString().getBytes());
+
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void write(String s) {
         output.append(String.format("%s\n", s));
