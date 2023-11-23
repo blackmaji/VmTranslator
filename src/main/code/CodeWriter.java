@@ -1,3 +1,5 @@
+package main.code;
+
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
