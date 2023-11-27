@@ -280,6 +280,35 @@ public class CodeWriter {
     
     }
 
+    void  writeFunction(String funcName , int nLocals ) {
+    
+        var loopLabel = funcName + "_INIT_LOCALS_LOOP";
+        var loopEndLabel = funcName + "_INIT_LOCALS_END";
+    
+    
+        write("(" + funcName + ")" + "// initializa local variables");
+        write(String.format("@%d", nLocals));
+        write("D=A");
+        write("@R13"); // temp
+        write("M=D");
+        write("(" + loopLabel + ")");
+        write("@" + loopEndLabel);
+        write("D;JEQ");
+        write("@0");
+        write("D=A");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+        write("@R13");
+        write("MD=M-1");
+        write("@" + loopLabel);
+        write("0;JMP");
+        write("(" + loopEndLabel + ")");
+    
+    }
+
     public void close() throws IOException {
         if (writer != null) {
             writer.close();
