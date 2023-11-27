@@ -220,6 +220,15 @@ public class CodeWriter {
         labelCount++;
     }
 
+    void  writeIf(String label ) {
+        write("@SP");
+        write("AM=M-1");
+        write("D=M");
+        write("M=0");
+        write("@" + label);
+        write("D;JNE");
+    
+    }
 
 
     public void close() throws IOException {
