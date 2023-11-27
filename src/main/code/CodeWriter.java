@@ -309,6 +309,62 @@ public class CodeWriter {
     
     }
 
+    void  writeReturn() {
+    
+        write("@LCL");
+        write("D=M");
+    
+        write("@R13");
+        write("M=D");
+    
+        write("@5") ;
+        write("A=D-A");
+        write("D=M");
+        write("@R14");
+        write("M=D");
+    
+        write("@SP");
+        write("AM=M-1");
+        write("D=M");
+        write("@ARG");
+        write("A=M");
+        write("M=D");
+    
+        write("D=A");
+        write("@SP");
+        write("M=D+1");
+    
+        write("@R13");
+        write("AM=M-1");
+        write("D=M");
+        write("@THAT");
+        write("M=D");
+    
+        write("@R13");
+        write("AM=M-1");
+        write("D=M");
+        write("@THIS");
+        write("M=D");
+    
+        write("@R13");
+        write("AM=M-1");
+        write("D=M");
+        write("@ARG");
+        write("M=D");
+    
+        write("@R13");
+        write("AM=M-1");
+        write("D=M");
+        write("@LCL");
+        write("M=D");
+    
+        write("@R14");
+        write("A=M");
+        write("0;JMP");
+    
+    }
+
+
     public void close() throws IOException {
         if (writer != null) {
             writer.close();
