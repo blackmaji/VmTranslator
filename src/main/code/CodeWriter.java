@@ -250,6 +250,10 @@ public class CodeWriter {
         System.out.println(moduleName);
     }
 
+    void  writeLabel(String label ) {
+        write("(" + label + ")");
+    }
+
     public void write(String s) {
         output.append(String.format("%s\n", s));
     }  
