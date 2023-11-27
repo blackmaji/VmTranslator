@@ -11,7 +11,7 @@ public class CodeWriter {
     private String moduleName = "Main";
     private int labelCount = 0;
     private String outputFileName;
-
+    private int callCount = 0;
 
     public CodeWriter(String fname) {
         outputFileName = fname;
@@ -230,6 +230,55 @@ public class CodeWriter {
     
     }
 
+    void  writeFramePush(String value) {
+        write("@" + value);
+        write("D=M");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+    }
+
+    void  writeCall(String funcName , int numArgs) {
+    
+        var comment = String.format("// call %s %d", funcName, numArgs);
+    
+        var returnAddr = String.format("%s_RETURN_%d", funcName, callCount);
+        callCount++;
+    
+        write(String.format("@%s %s", returnAddr, comment)); // push return-addr
+        write("D=A");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+    
+        writeFramePush("LCL");
+        writeFramePush("ARG");
+        writeFramePush("THIS");
+        writeFramePush("THAT");
+    
+        write(String.format("@%d", numArgs)); // ARG = SP-n-5
+        write("D=A");
+        write("@5");
+        write("D=D+A");
+        write("@SP");
+        write("D=M-D");
+        write("@ARG");
+        write("M=D");
+    
+        write("@SP") ;
+        write("D=M");
+        write("@LCL");
+        write("M=D");
+    
+        writeGoto(funcName);
+    
+        write("(" + returnAddr + ")");
+    
+    }
 
     public void close() throws IOException {
         if (writer != null) {
