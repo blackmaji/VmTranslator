@@ -254,6 +254,11 @@ public class CodeWriter {
         write("(" + label + ")");
     }
 
+    void  writeGoto(String label) {
+        write("@" + label);
+        write("0;JMP");
+    }
+
     public void write(String s) {
         output.append(String.format("%s\n", s));
     }  
