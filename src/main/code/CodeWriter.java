@@ -244,6 +244,11 @@ public class CodeWriter {
         }
     }
 
+    void setFileName(String s) {
+        moduleName = s.substring(0, s.indexOf("."));
+        moduleName = moduleName.substring(s.lastIndexOf("/") + 1);
+        System.out.println(moduleName);
+    }
 
     public void write(String s) {
         output.append(String.format("%s\n", s));
