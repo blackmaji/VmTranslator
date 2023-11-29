@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "main.code",
+            "projectName": "VmTranslator",
+            "args": "C:\\Users\\victo\\Documents\\GitHub\\VmTranslator\\08\\FunctionCalls\\FibonacciElement"
+        }
+    ]
+}

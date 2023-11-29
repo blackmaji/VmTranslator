@@ -1,4 +1,4 @@
-package main.code;
+package main.java.code;
 
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;

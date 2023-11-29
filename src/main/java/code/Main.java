@@ -1,4 +1,4 @@
-package main.code;
+package main.java.code;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +19,7 @@ public class Main {
     } 
 
     public static void main(String[] args) {
+
         if (args.length != 1) {
             System.err.println("Please provide a single file path argument.");
             System.exit(1);
