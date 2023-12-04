@@ -1,417 +1,376 @@
-package main.java.code;
-
-import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.PrintWriter;
 
+/**
+ * Created by danakatz on 10/28/14.
+ */
 public class CodeWriter {
-    private BufferedWriter writer;
-    private StringBuilder output = new StringBuilder();
-    private String moduleName = "Main";
-    private int labelCount = 0;
-    private String outputFileName;
-    private int callCount = 0;
+    private String filename;
+    private PrintWriter writeOut;
+    private int currentLine;
+    private int labelNumber;
 
-    public CodeWriter(String fname) {
-        outputFileName = fname;
+    public CodeWriter(File output) throws FileNotFoundException {
+        try {
+            writeOut = new PrintWriter(output);
+            currentLine = 0;
+            labelNumber = 0;
+        } catch(FileNotFoundException fnf) {
+            throw new FileNotFoundException("File not found: " + fnf.getMessage());
+        }
     }
 
-    
-    String registerName(String segment, int index) {
-
-        if (segment.equals("local"))
-            return "LCL";
-        if (segment.equals("argument"))
-            return "ARG";
-        if (segment.equals("this"))
-            return "THIS";
-        if (segment.equals("that"))
-            return "THAT";
-        if (segment.equals("pointer"))
-            return "R" + (3 + index);
-        if (segment.equals("temp"))
-            return "R" + (5 + index);
-
-        return moduleName + "." + index;
+    public void setFileName(String filename) {
+        this.filename = filename;
     }
 
-    public void  writeInit() {
-        write("@256");
-        write("D=A");
-        write("@SP");
-        write("M=D");
+    public void writeInit() {
+        writeOut.println("// init");
+        writeLine("@256");
+        writeLine("D=A");
+        writeLine("@SP");
+        writeLine("M=D");
         writeCall("Sys.init", 0);
     }
 
+    public void writeArithmetic(String operation) {
+        writeOut.println("// " + operation);
+        if(operation.equalsIgnoreCase("add") || operation.equalsIgnoreCase("sub") || operation.equalsIgnoreCase("and")
+                || operation.equalsIgnoreCase("or")) {
+            writeLine("@SP");
+            writeLine("AM=M-1");
+            writeLine("D=M");
+            writeLine("A=A-1");
 
-    void writePush(String seg, int index) {
-        if (seg.equals("constant")) {
-            write("@" + index + " // push " + seg + " " + index);
-            write("D=A");
-            write("@SP");
-            write("A=M");
-            write("M=D");
-            write("@SP");
-            write("M=M+1");
-        } else if (seg.equals("static") || seg.equals("temp") || seg.equals("pointer")) {
-            write("@" + registerName(seg, index) + " // push " + seg + " " + index);
-            write("D=M");
-            write("@SP");
-            write("A=M");
-            write("M=D");
-            write("@SP");
-            write("M=M+1");
-        }
+            if(operation.equalsIgnoreCase("add")) {
+                writeLine("M=D+M");
+            } else if(operation.equalsIgnoreCase("sub")) {
+                writeLine("M=M-D");
+            } else if(operation.equalsIgnoreCase("and")) {
+                writeLine("M=D&M");
+            } else if(operation.equalsIgnoreCase("or")) {
+                writeLine("M=D|M");
+            }
 
-        else {
-            write("@" + registerName(seg, 0) + " // push " + seg + " " + index);
-            write("D=M");
-            write("@" + index);
-            write("A=D+A");
-            write("D=M");
-            write("@SP");
-            write("A=M");
-            write("M=D");
-            write("@SP");
-            write("M=M+1");
-        }
-    }
+        } else if(operation.equalsIgnoreCase("eq") || operation.equalsIgnoreCase("lt")
+                || operation.equalsIgnoreCase("gt")) {
+            writeLine("@SP");
+            writeLine("AM=M-1");
+            writeLine("D=M");
+            writeLine("A=A-1");
+            writeLine("D=D-M");
+            writeLine("@" + (currentLine + 7));
 
-    void writePop(String seg, int index) {
-        if (seg.equals("static") || seg.equals("temp") || seg.equals("pointer")) {
+            if(operation.equalsIgnoreCase("eq")) {
+                writeLine("D;JEQ");
+            } else if(operation.equalsIgnoreCase("lt")) {
+                writeLine("D;JGT");
+            } else if(operation.equalsIgnoreCase("gt")) {
+                writeLine("D;JLT");
+            }
 
-            write("@SP // pop " + seg + " " + index);
-            write("M=M-1");
-            write("A=M");
-            write("D=M");
-            write("@" + registerName(seg, index));
-            write("M=D");
-        } else {
-            write("@" + registerName(seg, 0) + " // pop " + seg + " " + index);
-            write("D=M");
-            write("@" + index);
-            write("D=D+A");
-            write("@R13");
-            write("M=D");
-            write("@SP");
-            write("M=M-1");
-            write("A=M");
-            write("D=M");
-            write("@R13");
-            write("A=M");
-            write("M=D");
+            writeLine("@SP");
+            writeLine("A=M-1");
+            writeLine("M=0");
+            writeLine("@" + (currentLine + 5));
+            writeLine("0;JMP");
+            writeLine("@SP");
+            writeLine("A=M-1");
+            writeLine("M=-1");
+
+        } else if(operation.equalsIgnoreCase("not")) {
+            writeLine("@SP");
+            writeLine("A=M-1");
+            writeLine("M=!M");
+
+        } else if(operation.equalsIgnoreCase("neg")) {
+            writeLine("D=0");
+            writeLine("@SP");
+            writeLine("A=M-1");
+            writeLine("M=D-M");
         }
     }
 
-    void writeArithmeticAdd() {
-        write("@SP // add");
-        write("M=M-1");
-        write("A=M");
-        write("D=M");
-        write("A=A-1");
-        write("M=D+M");
+    private void writeLine(String line) {
+        writeOut.println(line);
+        currentLine++;
     }
 
-    void writeArithmeticSub() {
-        write("@SP // sub");
-        write("M=M-1");
-        write("A=M");
-        write("D=M");
-        write("A=A-1");
-        write("M=M-D");
-    }
+    public void writePushPop(int command, String segment, int index) {
+        writeOut.println("// " + command + segment + index);
+        if(command == Parser.C_PUSH) {
+            if(segment.equalsIgnoreCase("pointer")) {
+                if(index == 0) {
+                    writeLine("@THIS");
+                } else if(index == 1) {
+                    writeLine("@THAT");
+                }
 
-    void writeArithmeticNeg() {
-        write("@SP // neg");
-        write("A=M");
-        write("A=A-1");
-        write("M=-M");
-    }
+                writeLine("D=M");
+            } else if(segment.equalsIgnoreCase("static")) {
+                writeLine("@" + filename + "." + index);
+                writeLine("D=M");
+            } else if(index == 0 && !segment.equalsIgnoreCase("constant")) {
+                writeLine(getLabel(segment));
+                writeLine("A=M");
+                writeLine("D=M");
+            } else if(index > 0 || segment.equalsIgnoreCase("constant")) {
+                writeLine("@" + index);
+                writeLine("D=A");
+            }
 
-    void writeArithmeticAnd() {
-        write("@SP // and");
-        write("AM=M-1");
-        write("D=M");
-        write("A=A-1");
-        write("M=D&M");
-    }
+            if(index > 0 && !segment.equalsIgnoreCase("constant") && !segment.equalsIgnoreCase("pointer")
+                    && !segment.equalsIgnoreCase("static")) {
+                writeLine(getLabel(segment));
 
-    void writeArithmeticOr() {
-        write("@SP // or");
-        write("AM=M-1");
-        write("D=M");
-        write("A=A-1");
-        write("M=D|M");
-    }
+                if(segment.equalsIgnoreCase("temp")) {
+                    writeLine("A=D+A");
+                } else {
+                    writeLine("A=D+M");
+                }
 
-    void writeArithmeticNot() {
+                writeLine("D=M");
+            }
 
-        write("@SP // not");
-        write("A=M");
-        write("A=A-1");
-        write("M=!M");
-    }
+            writeLine("@SP");
+            writeLine("A=M");
+            writeLine("M=D");
+            writeLine("@SP");
+            writeLine("M=M+1");
 
-    void writeArithmeticEq() {
-        String label = ("JEQ_" + moduleName + "_" + (labelCount));
-        write("@SP // eq");
-        write("AM=M-1");
-        write("D=M");
-        write("@SP");
-        write("AM=M-1");
-        write("D=M-D");
-        write("@" + label);
-        write("D;JEQ");
-        write("D=1");
-        write("(" + label + ")");
-        write("D=D-1");
-        write("@SP");
-        write("A=M");
-        write("M=D");
-        write("@SP");
-        write("M=M+1");
+        } else if(command == Parser.C_POP) {
+            if(index == 0 || segment.equalsIgnoreCase("pointer") || segment.equalsIgnoreCase("static")) {
+                writeLine("@SP");
+                writeLine("AM=M-1");
+                writeLine("D=M");
+                if(segment.equalsIgnoreCase("pointer") && index == 0) {
+                    writeLine("@THIS");
+                } else if(segment.equalsIgnoreCase("pointer") && index == 1) {
+                    writeLine("@THAT");
+                } else if(segment.equalsIgnoreCase("static")) {
+                    writeLine("@" + filename + "." + index);
+                }
+                else {
+                    writeLine(getLabel(segment));
+                }
 
-        labelCount++;
-    }
+            } else if(index > 0) {
+                writeLine("@" + index);
+                writeLine("D=A");
+                writeLine(getLabel(segment));
 
-    void writeArithmeticGt() {
-        String labelTrue = ("JGT_TRUE_" + moduleName + "_" + (labelCount));
-        String labelFalse = ("JGT_FALSE_" + moduleName + "_" + (labelCount));
+                if(segment.equalsIgnoreCase("temp")) {
+                    writeLine("D=D+A");
+                } else {
+                    writeLine("D=D+M");
+                }
 
-        write("@SP // gt");
-        write("AM=M-1");
-        write("D=M");
-        write("@SP");
-        write("AM=M-1");
-        write("D=M-D");
-        write("@" + labelTrue);
-        write("D;JGT");
-        write("D=0");
-        write("@" + labelFalse);
-        write("0;JMP");
-        write("(" + labelTrue + ")");
-        write("D=-1");
-        write("(" + labelFalse + ")");
-        write("@SP");
-        write("A=M");
-        write("M=D");
-        write("@SP");
-        write("M=M+1");
+                writeLine("@R13");
+                writeLine("M=D");
+                writeLine("@SP");
+                writeLine("AM=M-1");
+                writeLine("D=M");
+                writeLine("@R13");
+            }
 
-        labelCount++;
-    }
-
-    void writeArithmeticLt() {
-        String labelTrue = ("JLT_TRUE_" + moduleName + "_" + (labelCount));
-        String labelFalse = ("JLT_FALSE_" + moduleName + "_" + (labelCount));
-
-        write("@SP // lt");
-        write("AM=M-1");
-        write("D=M");
-        write("@SP");
-        write("AM=M-1");
-        write("D=M-D");
-        write("@" + labelTrue);
-        write("D;JLT");
-        write("D=0");
-        write("@" + labelFalse);
-        write("0;JMP");
-        write("(" + labelTrue + ")");
-        write("D=-1");
-        write("(" + labelFalse + ")");
-        write("@SP");
-        write("A=M");
-        write("M=D");
-        write("@SP");
-        write("M=M+1");
-
-        labelCount++;
-    }
-
-    void  writeIf(String label ) {
-        write("@SP");
-        write("AM=M-1");
-        write("D=M");
-        write("M=0");
-        write("@" + label);
-        write("D;JNE");
-    
-    }
-
-    void  writeFramePush(String value) {
-        write("@" + value);
-        write("D=M");
-        write("@SP");
-        write("A=M");
-        write("M=D");
-        write("@SP");
-        write("M=M+1");
-    }
-
-    void  writeCall(String funcName , int numArgs) {
-    
-        var comment = String.format("// call %s %d", funcName, numArgs);
-    
-        var returnAddr = String.format("%s_RETURN_%d", funcName, callCount);
-        callCount++;
-    
-        write(String.format("@%s %s", returnAddr, comment)); // push return-addr
-        write("D=A");
-        write("@SP");
-        write("A=M");
-        write("M=D");
-        write("@SP");
-        write("M=M+1");
-    
-        writeFramePush("LCL");
-        writeFramePush("ARG");
-        writeFramePush("THIS");
-        writeFramePush("THAT");
-    
-        write(String.format("@%d", numArgs)); // ARG = SP-n-5
-        write("D=A");
-        write("@5");
-        write("D=D+A");
-        write("@SP");
-        write("D=M-D");
-        write("@ARG");
-        write("M=D");
-    
-        write("@SP") ;
-        write("D=M");
-        write("@LCL");
-        write("M=D");
-    
-        writeGoto(funcName);
-    
-        write("(" + returnAddr + ")");
-    
-    }
-
-    void  writeFunction(String funcName , int nLocals ) {
-    
-        var loopLabel = funcName + "_INIT_LOCALS_LOOP";
-        var loopEndLabel = funcName + "_INIT_LOCALS_END";
-    
-    
-        write("(" + funcName + ")" + "// initializa local variables");
-        write(String.format("@%d", nLocals));
-        write("D=A");
-        write("@R13"); // temp
-        write("M=D");
-        write("(" + loopLabel + ")");
-        write("@" + loopEndLabel);
-        write("D;JEQ");
-        write("@0");
-        write("D=A");
-        write("@SP");
-        write("A=M");
-        write("M=D");
-        write("@SP");
-        write("M=M+1");
-        write("@R13");
-        write("MD=M-1");
-        write("@" + loopLabel);
-        write("0;JMP");
-        write("(" + loopEndLabel + ")");
-    
-    }
-
-    void  writeReturn() {
-    
-        write("@LCL");
-        write("D=M");
-    
-        write("@R13");
-        write("M=D");
-    
-        write("@5") ;
-        write("A=D-A");
-        write("D=M");
-        write("@R14");
-        write("M=D");
-    
-        write("@SP");
-        write("AM=M-1");
-        write("D=M");
-        write("@ARG");
-        write("A=M");
-        write("M=D");
-    
-        write("D=A");
-        write("@SP");
-        write("M=D+1");
-    
-        write("@R13");
-        write("AM=M-1");
-        write("D=M");
-        write("@THAT");
-        write("M=D");
-    
-        write("@R13");
-        write("AM=M-1");
-        write("D=M");
-        write("@THIS");
-        write("M=D");
-    
-        write("@R13");
-        write("AM=M-1");
-        write("D=M");
-        write("@ARG");
-        write("M=D");
-    
-        write("@R13");
-        write("AM=M-1");
-        write("D=M");
-        write("@LCL");
-        write("M=D");
-    
-        write("@R14");
-        write("A=M");
-        write("0;JMP");
-    
-    }
-
-
-    public void close() throws IOException {
-        if (writer != null) {
-            writer.close();
+            if(!segment.equalsIgnoreCase("pointer") && !segment.equalsIgnoreCase("static")
+                    && !segment.equalsIgnoreCase("temp")) {
+                writeLine("A=M");
+            }
+            writeLine("M=D");
         }
     }
 
-    public void save() {
+    public void writeLabel(String label) {
+        writeOut.println("// C_LABEL " + label);
+        writeOut.println("(" + label + ")");
+    }
 
-        FileOutputStream outputStream;
-        try {
-            outputStream = new FileOutputStream(outputFileName);
+    public void writeGoto(String label) {
+        writeOut.println("// C_GOTO " + label);
+        writeLine("@" + label);
+        writeLine("0;JMP");
+    }
 
-            outputStream.write(output.toString().getBytes());
+    public void writeIf(String label) {
+        writeOut.println("// C_IF " + label);
+        writeLine("@SP");
+        writeLine("AM=M-1");
+        writeLine("D=M");
+        writeLine("@" + label);
+        writeLine("D;JNE");
+    }
 
-            outputStream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void writeCall(String functionName, int numArgs) {
+        writeOut.println("// call " + functionName + " " + numArgs);
+
+        // save calling function
+        writeOut.println("// save calling function");
+        writeLine("@return-address" + labelNumber);
+        writeLine("D=A");
+        finishPush();
+
+        writeLine("@LCL");
+        writeLine("D=M");
+        finishPush();
+
+        writeLine("@ARG");
+        writeLine("D=M");
+        finishPush();
+
+        writeLine("@THIS");
+        writeLine("D=M");
+        finishPush();
+
+        writeLine("@THAT");
+        writeLine("D=M");
+        finishPush();
+
+        // reposition ARG
+        writeOut.println("// reposition ARG");
+        writeLine("@SP");
+        writeLine("D=M");
+        writeLine("@" + numArgs);
+        writeLine("D=D-A");
+        writeLine("@5");
+        writeLine("D=D-A");
+        writeLine("@ARG");
+        writeLine("M=D");
+
+        // reposition LCL
+        writeOut.println("// reposition LCL");
+        writeLine("@SP");
+        writeLine("D=M");
+        writeLine("@LCL");
+        writeLine("M=D");
+
+        // transfer control
+        writeOut.println("// transfer control");
+        writeGoto(functionName);
+
+        // declare return address label
+        writeOut.println("// declare return address label");
+        writeLabel("return-address" + labelNumber);
+
+        labelNumber++;
+
+    }
+
+    private void finishPush() {
+        writeLine("@SP");
+        writeLine("A=M");
+        writeLine("M=D");
+        writeLine("@SP");
+        writeLine("M=M+1");
+    }
+
+    public void writeReturn() {
+        writeOut.println("// return");
+
+        // set FRAME = LCL
+        writeOut.println("// set FRAME = LCL");
+        writeLine("@LCL");
+        writeLine("D=M");
+        writeLine("@FRAME");
+        writeLine("M=D");
+
+        // set RET = FRAME - 5
+        writeOut.println("// set RET = FRAME - 5");
+        writeLine("@5");
+        writeLine("A=D-A");
+        writeLine("D=M");
+        writeLine("@RET");
+        writeLine("M=D");
+
+        // set ARG = pop()
+        writeOut.println("// set ARG = pop()");
+        writeLine("@SP");
+        writeLine("AM=M-1");
+        writeLine("D=M");
+        writeLine("@ARG");
+        writeLine("A=M");
+        writeLine("M=D");
+
+        // restore SP of the caller
+        writeOut.println("// restore SP of the caller");
+        writeLine("@ARG");
+        writeLine("D=M+1");
+        writeLine("@SP");
+        writeLine("M=D");
+
+        // restore THAT of the caller
+        writeOut.println("// restore THAT of the caller");
+        writeLine("@FRAME");
+        writeLine("A=M-1");
+        writeLine("D=M");
+        writeLine("@THAT");
+        writeLine("M=D");
+
+        // restore THIS of the caller
+        writeOut.println("// restore THIS of the caller");
+        writeLine("@FRAME");
+        writeLine("D=M");
+        writeLine("@2");
+        writeLine("A=D-A");
+        writeLine("D=M");
+        writeLine("@THIS");
+        writeLine("M=D");
+
+        // restore ARG of the caller
+        writeOut.println("// restore ARG of the caller");
+        writeLine("@FRAME");
+        writeLine("D=M");
+        writeLine("@3");
+        writeLine("A=D-A");
+        writeLine("D=M");
+        writeLine("@ARG");
+        writeLine("M=D");
+
+        // restore LCL of the caller
+        writeOut.println("// restore LCL of the caller");
+        writeLine("@FRAME");
+        writeLine("D=M");
+        writeLine("@4");
+        writeLine("A=D-A");
+        writeLine("D=M");
+        writeLine("@LCL");
+        writeLine("M=D");
+
+        // goto RET
+        writeOut.println("// goto RET");
+        writeLine("@RET");
+        writeLine("A=M");
+        writeLine("0;JMP");
+    }
+
+    public void writeFunction(String functionName, int numLocals) {
+        writeOut.println("// function " + functionName + numLocals);
+
+        // declare label for function entry
+        writeLabel(functionName);
+
+        // initialize local variables to 0
+        for(int i = 0; i < numLocals; i++) {
+            writePushPop(Parser.C_PUSH, "constant", 0);
         }
     }
 
-    void setFileName(String s) {
-        moduleName = s.substring(0, s.indexOf("."));
-        moduleName = moduleName.substring(s.lastIndexOf("/") + 1);
-        System.out.println(moduleName);
+    private String getLabel(String segment) {
+        if(segment.equalsIgnoreCase("local")) {
+            return "@LCL";
+        } else if(segment.equalsIgnoreCase("argument")) {
+            return "@ARG";
+        } else if(segment.equalsIgnoreCase("this")) {
+            return "@THIS";
+        } else if(segment.equalsIgnoreCase("that")) {
+            return "@THAT";
+        } else if(segment.equalsIgnoreCase("temp")) {
+            return "@R5";
+        } else return null;
     }
 
-    void  writeLabel(String label ) {
-        write("(" + label + ")");
+    public void close() {
+        writeOut.close();
     }
-
-    void  writeGoto(String label) {
-        write("@" + label);
-        write("0;JMP");
-    }
-
-    public void write(String s) {
-        output.append(String.format("%s\n", s));
-    }  
 }
