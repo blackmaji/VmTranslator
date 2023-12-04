@@ -2,9 +2,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-/**
- * Created by danakatz on 10/28/14.
- */
 public class CodeWriter {
     private String filename;
     private PrintWriter writeOut;
