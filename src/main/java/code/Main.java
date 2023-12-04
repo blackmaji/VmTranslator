@@ -82,7 +82,6 @@ public class Main {
 
     private static void getFiles(File input, ArrayList<File> files) throws FileNotFoundException {
         if(input.isFile()) {
-            // check for .vm extension before adding to list of files
             String filename = input.getName();
             int extension = filename.indexOf('.');
             if(extension > 0) {

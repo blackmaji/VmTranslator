@@ -22,8 +22,8 @@ public class Parser {
     ArrayList<String> arithmeticCommands;
 
     public Parser(File input) throws FileNotFoundException, Exception {
-        try {                                                                   // add all non-whitespace lines
-            removeWhitespace(input);                                            // to an array list of instructions
+        try {                                                                   
+            removeWhitespace(input);                                           
             initializeArithmeticCommands();
             currentLineNumber = 0;
             if(!instructions.isEmpty()) {
@@ -122,20 +122,20 @@ public class Parser {
             Scanner in = new Scanner(input);
 
             while(in.hasNext()) {
-                String next = in.nextLine();                                // reads each line and splits into
-                String[] line = next.split("\\s");                          // an array of string tokens
+                String next = in.nextLine();                                
+                String[] line = next.split("\\s");                          
                 String command = "";
 
                 for(int i = 0; i < line.length; i++) {
-                    if(line.length == 0) {                                  // ignores empty lines
+                    if(line.length == 0) {                                  
                         break;
                     } else if(line[i].length() > 1 && line[i].substring(0, 2).equals("//") && i != 0) {
-                        break;                                              // ignores inline comments
+                        break;                                              
                     } else if(line[i].length() > 1 && line[i].substring(0, 2).equals("//") && i == 0) {
-                        break;                                              // ignores whole-line comments
+                        break;                                              
                     }  else {
                         command += line[i];
-                        command += " ";                                     // preserves space between command words
+                        command += " ";                                     
                     }
                 }
 

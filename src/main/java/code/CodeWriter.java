@@ -344,10 +344,8 @@ public class CodeWriter {
     public void writeFunction(String functionName, int numLocals) {
         writeOut.println("// function " + functionName + numLocals);
 
-        // declare label for function entry
         writeLabel(functionName);
 
-        // initialize local variables to 0
         for(int i = 0; i < numLocals; i++) {
             writePushPop(Parser.C_PUSH, "constant", 0);
         }
