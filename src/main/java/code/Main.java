@@ -2,10 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-/**
- * Created by danakatz on 10/28/14.
- */
-public class VMTranslator {
+public class Main {
     public static void main(String[] args) {
         if(args.length > 0) {
             try {
